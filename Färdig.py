@@ -148,3 +148,49 @@ plt.show()
 
 print(f"Förutsägelse för män 2026: {pred_2026[0]:.2f} SEK")
 print(f"Förutsägelse för kvinnor 2026: {pred_2026[1]:.2f} SEK")
+
+# Steg 9: Filtrera data för året 2024
+df_2024 = df[df['year'] == 2024]
+
+# Kontrollera om 'unemployment_insurance_fund' finns i datasetet
+if 'unemployment_insurance_fund' not in df.columns:
+    print("'unemployment_insurance_fund' kolumnen saknas i datasetet.")
+else:
+    # Steg 10: Gruppdata per 'unemployment_insurance_fund' och kön, samt summering av utbetalningar
+    grouped_fund_gender = df_2024.groupby(['unemployment_insurance_fund', 'gender'])['amount_sek'].sum().unstack()
+
+    # Steg 11: Visualisering av jämförelse av utbetalningar per 'unemployment_insurance_fund' och kön
+    plt.figure(figsize=(14, 7))
+    grouped_fund_gender.plot(kind='bar', figsize=(12, 6), cmap='coolwarm', width=0.8)
+
+    plt.title('Jämförelse av utbetalningar per arbetslöshetsförsäkringsfond och kön (2024)', fontsize=16)
+    plt.xlabel('Arbetslöshetsförsäkringsfond', fontsize=14)
+    plt.ylabel('Totala utbetalningar (SEK)', fontsize=14)
+    plt.xticks(rotation=45, ha='right')
+    plt.legend(title='Kön', title_fontsize='13')
+    plt.tight_layout()
+    plt.show()
+
+    # Steg 12: Prediktion för 2025 baserat på 2024 data och antagande om 5% ökning
+
+    # Kontrollera om 'unemployment_insurance_fund' finns i datasetet
+    if 'unemployment_insurance_fund' not in df.columns:
+        print("'unemployment_insurance_fund' kolumnen saknas i datasetet.")
+    else:
+        # Gruppdata per 'unemployment_insurance_fund' och kön för 2024
+        grouped_fund_gender_2024 = df_2024.groupby(['unemployment_insurance_fund', 'gender'])['amount_sek'].sum().unstack()
+
+        # Beräkna prediktion för 2025 med 5% ökning
+        prediction_2025 = grouped_fund_gender_2024 * 1.05
+
+        # Visualisering av prediktion för 2025
+        plt.figure(figsize=(14, 7))
+        prediction_2025.plot(kind='bar', figsize=(12, 6), cmap='coolwarm', width=0.8, color=['skyblue', 'pink'])
+
+        plt.title('Prediktion av utbetalningar per arbetslöshetsförsäkringsfond och kön (2025)', fontsize=16)
+        plt.xlabel('Arbetslöshetsförsäkringsfond', fontsize=14)
+        plt.ylabel('Totala utbetalningar (SEK)', fontsize=14)
+        plt.xticks(rotation=45, ha='right')
+        plt.legend(title='Kön', title_fontsize='13')
+        plt.tight_layout()
+        plt.show()
