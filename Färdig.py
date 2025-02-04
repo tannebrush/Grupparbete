@@ -28,7 +28,7 @@ print(f"Bearbetad data har sparats till {output_csv_path}")
 
 #VISUALISERINGAR 
 
-#Histogram över totalt belopp för arbetslöshetsersättning
+#1. Histogram över totalt belopp för arbetslöshetsersättning
 plt.figure(figsize=(10, 6))
 sns.histplot(df_total['amount_sek'], bins=20, kde=True)
 plt.title('Histogram för totalt belopp av arbetslöshetsersättning')
@@ -36,7 +36,7 @@ plt.xlabel('Belopp i SEK')
 plt.ylabel('Frekvens')
 plt.show()
 
-#Linjediagram för att visa trender över tid för varje kön
+#2. Linjediagram för att visa trender över tid för varje kön
 plt.figure(figsize=(10, 6))
 sns.lineplot(data=df_total, x='year', y='amount_sek', hue='gender', marker='o')
 plt.title('Linjediagram för arbetslöshetsersättning över tid för varje kön')
@@ -45,7 +45,7 @@ plt.ylabel('Belopp i SEK')
 plt.legend(title='Kön')
 plt.show()
 
-#Scatter plot för att visa relationen mellan olika åldersgrupper och belopp
+#3.Scatter plot för att visa relationen mellan olika åldersgrupper och belopp
 plt.figure(figsize=(10, 6))
 sns.scatterplot(data=df, x='age_range_year', y='amount_sek', hue='gender', palette='Set2')
 plt.title('Relation mellan åldersgrupper och arbetslöshetsersättning')
@@ -55,7 +55,7 @@ plt.legend(title='Kön')
 plt.xticks(rotation=45)
 plt.show()
 
-#Ny graf: Procentuell förändring över tid
+#4.procentuell förändring över tid
 plt.figure(figsize=(10, 6))
 sns.lineplot(data=df_total, x='year', y='percent_change', hue='gender', marker='o')
 plt.axhline(0, linestyle='--', color='gray')  # Nollinje för att visa när det minskar
@@ -65,14 +65,49 @@ plt.ylabel('Förändring i %')
 plt.legend(title='Kön')
 plt.show()
 
+
+# 5. **Scatterplot: Korrelation mellan dagar och utbetalning**
+plt.figure(figsize=(12, 6))
+sns.scatterplot(data=df, x='days', y='amount_sek', hue='gender', size='year', sizes=(50, 200), palette='coolwarm', alpha=0.7)
+plt.title('Korrelation mellan dagar och utbetalning', fontsize=16)
+plt.xlabel('Antal dagar', fontsize=14)
+plt.ylabel('Utbetalning (SEK)', fontsize=14)
+plt.tight_layout()
+plt.show()
+
+
+#6. : Filtrera data för året 2024
+df_2024 = df[df['year'] == 2024]
+
+# Kontrollera om 'unemployment_insurance_fund' finns i datasetet
+if 'unemployment_insurance_fund' not in df.columns:
+    print("'unemployment_insurance_fund' kolumnen saknas i datasetet.")
+else:
+    # Steg 10: Gruppdata per 'unemployment_insurance_fund' och kön, samt summering av utbetalningar
+    grouped_fund_gender = df_2024.groupby(['unemployment_insurance_fund', 'gender'])['amount_sek'].sum().unstack()
+
+    # Steg 11: Visualisering av jämförelse av utbetalningar per 'unemployment_insurance_fund' och kön
+    plt.figure(figsize=(14, 7))
+    grouped_fund_gender.plot(kind='bar', figsize=(12, 6), cmap='coolwarm', width=0.8)
+
+    plt.title('Jämförelse av utbetalningar per arbetslöshetsförsäkringsfond och kön (2024)', fontsize=16)
+    plt.xlabel('Arbetslöshetsförsäkringsfond', fontsize=14)
+    plt.ylabel('Totala utbetalningar (SEK)', fontsize=14)
+    plt.xticks(rotation=45, ha='right')
+    plt.legend(title='Kön', title_fontsize='13')
+    plt.tight_layout()
+    plt.show()
 #MASKININLÄRNING: REGRESSION
 
 #Regression för män
-df_regression_men = df_total[df_total['gender'] == 'men']
-X_men = df_regression_men[['year']]
-y_men = df_regression_men['amount_sek']
+df_regression_men = df_total[df_total['gender'] == 'men'] #Skapar DataFrame för män
+X_men = df_regression_men[['year']] #Oberoende variabel som innehåller year , INPUT
+y_men = df_regression_men['amount_sek'] #Beroende variabel som innehåller amount_sek, OUTPUT
 
-X_train_men, X_test_men, y_train_men, y_test_men = train_test_split(X_men, y_men, test_size=0.2, random_state=42)
+
+#Dela data i träninng 80% och test 20%
+X_train_men, X_test_men, y_train_men, y_test_men = train_test_split(X_men, y_men, test_size=0.2, random_state=42) #random_state=42 för att få samma resultat varje gång
+
 
 #Träna modellen
 model_men = LinearRegression()
@@ -149,34 +184,14 @@ plt.show()
 print(f"Förutsägelse för män 2026: {pred_2026[0]:.2f} SEK")
 print(f"Förutsägelse för kvinnor 2026: {pred_2026[1]:.2f} SEK")
 
-# Steg 9: Filtrera data för året 2024
-df_2024 = df[df['year'] == 2024]
 
-# Kontrollera om 'unemployment_insurance_fund' finns i datasetet
-if 'unemployment_insurance_fund' not in df.columns:
-    print("'unemployment_insurance_fund' kolumnen saknas i datasetet.")
-else:
-    # Steg 10: Gruppdata per 'unemployment_insurance_fund' och kön, samt summering av utbetalningar
-    grouped_fund_gender = df_2024.groupby(['unemployment_insurance_fund', 'gender'])['amount_sek'].sum().unstack()
-
-    # Steg 11: Visualisering av jämförelse av utbetalningar per 'unemployment_insurance_fund' och kön
-    plt.figure(figsize=(14, 7))
-    grouped_fund_gender.plot(kind='bar', figsize=(12, 6), cmap='coolwarm', width=0.8)
-
-    plt.title('Jämförelse av utbetalningar per arbetslöshetsförsäkringsfond och kön (2024)', fontsize=16)
-    plt.xlabel('Arbetslöshetsförsäkringsfond', fontsize=14)
-    plt.ylabel('Totala utbetalningar (SEK)', fontsize=14)
-    plt.xticks(rotation=45, ha='right')
-    plt.legend(title='Kön', title_fontsize='13')
-    plt.tight_layout()
-    plt.show()
 
     # Steg 12: Prediktion för 2025 baserat på 2024 data och antagande om 5% ökning
 
     # Kontrollera om 'unemployment_insurance_fund' finns i datasetet
-    if 'unemployment_insurance_fund' not in df.columns:
+if 'unemployment_insurance_fund' not in df.columns:
         print("'unemployment_insurance_fund' kolumnen saknas i datasetet.")
-    else:
+else:
         # Gruppdata per 'unemployment_insurance_fund' och kön för 2024
         grouped_fund_gender_2024 = df_2024.groupby(['unemployment_insurance_fund', 'gender'])['amount_sek'].sum().unstack()
 
@@ -194,3 +209,26 @@ else:
         plt.legend(title='Kön', title_fontsize='13')
         plt.tight_layout()
         plt.show()
+
+# 7. **Heatmap: Korrelation mellan antal dagar och utbetalningar**
+corr = df[['days', 'amount_sek']].corr()
+plt.figure(figsize=(8, 6))
+sns.heatmap(corr, annot=True, cmap='coolwarm', vmin=-1, vmax=1, cbar_kws={'label': 'Korrelationskoefficient'})
+plt.title('Korrelation mellan dagar och utbetalningar', fontsize=16)
+plt.tight_layout()
+plt.show()
+
+# 4. **Boxplot: Fördelning av ersättning per dag per kön**
+plt.figure(figsize=(12, 6))
+sns.boxplot(data=df, x='gender', y='amount_sek', palette='Set2')
+plt.title('Fördelning av ersättning per dag per kön', fontsize=16)
+plt.xlabel('Kön', fontsize=14)
+plt.ylabel('Ersättning per dag (SEK)', fontsize=14)
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.show()
+
+
+
+
+
